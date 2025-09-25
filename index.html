@@ -56,7 +56,7 @@
     h1 {font-size:2em;color:var(--accent-color);text-shadow:0 0 15px var(--accent-color);}
     p {margin-top:8px;opacity:0.9;font-size:0.9em;}
 
-    /* scratch card size reduced */
+    /* scratch card */
     #scratch-container {
       position:relative;width:260px;height:150px;
       border-radius:15px;margin:20px auto;
@@ -72,9 +72,7 @@
       border-radius:15px;color:#fff;font-size:2.5em;font-weight:bold;
       text-shadow:0 0 15px #fff,0 0 15px var(--accent-color);
       position:absolute;z-index:1;
-      animation: glow 2s infinite alternate;
     }
-    @keyframes glow {from{text-shadow:0 0 10px #00e0ff;}to{text-shadow:0 0 25px #ff00f7;}}
 
     .action-button {
       width:100%;padding:12px;border:none;border-radius:12px;
@@ -110,6 +108,7 @@
     }
     #progress-bar {width:0%;height:100%;background:var(--accent-color);transition:width 0.7s ease;}
 
+    /* popups */
     .popup-overlay {
       position:fixed;top:0;left:0;width:100%;height:100%;
       background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);
@@ -129,6 +128,7 @@
 </head>
 <body>
   <div class="container">
+    <!-- Scratch Page -->
     <div id="scratch-page" class="page active">
       <h1>Neon Rewards</h1>
       <p>Scratch the neon card to reveal your prize!</p>
@@ -139,6 +139,7 @@
       <button id="claim-button-1" class="action-button" disabled>Claim Prize</button>
     </div>
 
+    <!-- Claim Page -->
     <div id="claim-page" class="page">
       <h2>🎉 You've Won</h2>
       <div id="won-amount-display">₹0</div>
@@ -146,6 +147,27 @@
       <div id="telegram-grid"></div>
       <div id="progress-bar-container"><div id="progress-bar"></div></div>
       <button id="claim-upi-button" class="action-button" disabled>Claim Prize</button>
+    </div>
+  </div>
+
+  <!-- UPI Input Popup -->
+  <div id="upi-popup-overlay" class="popup-overlay">
+    <div class="popup">
+      <h3>Final Step!</h3>
+      <div id="popup-amount">₹0</div>
+      <p>Enter your UPI ID to receive your reward.</p>
+      <input type="text" id="upi-input" placeholder="your.name@upi" style="width:100%;padding:12px;border-radius:8px;text-align:center;">
+      <button id="submit-upi-button" class="action-button">Send Reward</button>
+    </div>
+  </div>
+
+  <!-- Congrats Popup -->
+  <div id="congrats-popup-overlay" class="popup-overlay">
+    <div class="popup">
+      <div id="congrats-icon">✨</div>
+      <h3 id="congrats-message">Congratulations!</h3>
+      <p>Your reward is on its way! Redirecting…</p>
+      <button id="ok-button" class="action-button">OK</button>
     </div>
   </div>
 
@@ -159,6 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const claimBtn=document.getElementById("claim-button-1");
   const claimUpiBtn=document.getElementById("claim-upi-button");
 
+  // scratch
   function setupCanvas(){
     const g=ctx.createLinearGradient(0,0,canvas.width,canvas.height);
     g.addColorStop(0,"#ff00f7");g.addColorStop(1,"#00e0ff");
@@ -179,7 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function showPage(id){document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));document.getElementById(id).classList.add("active");}
   claimBtn.addEventListener("click",()=>{showPage("claim-page");document.getElementById("won-amount-display").textContent=`₹${finalAmount}`;claimUpiBtn.textContent=`Claim ₹${finalAmount}`;});
 
-  // 6 channel buttons
+  // channels
   const channels=[
     {name:"Join",link:"https://t.me/NobiCreator"},
     {name:"Join",link:"https://t.me/KING0CHANNEL"},
@@ -196,7 +219,21 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.onclick=()=>{window.open(ch.link,"_blank");setTimeout(()=>{btn.classList.add("joined");btn.innerHTML="✅ Joined";joined++;document.getElementById("progress-bar").style.width=`${(joined/channels.length)*100}%`;if(joined===channels.length)claimUpiBtn.disabled=false;},2000);}
     grid.appendChild(btn);
   });
+
+  // UPI claim
+  const upiPopup=document.getElementById("upi-popup-overlay");
+  const congratsPopup=document.getElementById("congrats-popup-overlay");
+  claimUpiBtn.addEventListener("click",()=>{upiPopup.classList.add("active");document.getElementById("popup-amount").textContent=`₹${finalAmount}`;});
+  document.getElementById("submit-upi-button").addEventListener("click",()=>{
+    const upi=document.getElementById("upi-input").value;
+    if(!upi.includes("@")) return alert("Enter valid UPI ID");
+    upiPopup.classList.remove("active");
+    document.getElementById("congrats-message").innerHTML=`🎉 Congratulations!<br>You will receive ₹${finalAmount}`;
+    congratsPopup.classList.add("active");
+    setTimeout(()=>{window.location.href=permanentTelegramLink;},5000);
+    document.getElementById("ok-button").onclick=()=>{window.location.href=permanentTelegramLink;};
+  });
 });
 </script>
 </body>
-  </html>
+</html>
